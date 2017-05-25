@@ -295,7 +295,7 @@
     return (digitalInputData[pin >> 3] >> (pin & 0x07)) & 0x01;
   }
 
-  function digitalPullupRead(pin)
+  function digitalPullupRead(pin) {
   if (!hasCapability(pin, INPUT)) {
     console.log('ERROR: valid input pins are ' + pinModes[INPUT].join(', '));
     return;
