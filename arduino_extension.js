@@ -295,6 +295,15 @@
     return (digitalInputData[pin >> 3] >> (pin & 0x07)) & 0x01;
   }
 
+  function digitalPullupRead(pin)
+  if (!hasCapability(pin, INPUT)) {
+    console.log('ERROR: valid input pins are ' + pinModes[INPUT].join(', '));
+    return;
+  }
+  pinMode(pin, PULLUP);
+  return (digitalInputData[pin >> 3] >> (pin & 0x07)) & 0x01;
+}
+
   function analogWrite(pin, val) {
     if (!hasCapability(pin, PWM)) {
       console.log('ERROR: valid PWM pins are ' + pinModes[PWM].join(', '));
@@ -385,6 +394,15 @@
         return digitalRead(pin);
       else if (val == menus[lang]['outputs'][1])
         return digitalRead(pin) === false;
+    }
+  };
+
+  ext.whenDigitalPullupRead = function(pin, val) {
+    if (hasCapability(pin, INPUT)) {
+      if (val == menus[lang]['outputs'][0])
+        return digitalPullupRead(pin);
+      else if (val == menus[lang]['outputs'][1])
+        return digitalPullupRead(pin) === false;
     }
   };
 
@@ -566,6 +584,9 @@
       ['-'],
       ['h', 'when pin %n is %m.outputs', 'whenDigitalRead', 1, 'on'],
       ['b', 'pin %n on?', 'digitalRead', 1],
+      ['-'],
+      ['h', 'when pullup pin %n is %m.outputs', 'whenDigitalPullupRead', 1, 'on'],
+      ['b', 'pullup pin %n on?', 'digitalPullupRead', 1],
       ['-'],
       ['h', 'when analog %n %m.ops %n%', 'whenAnalogRead', 1, '>', 50],
       ['r', 'read analog %n', 'analogRead', 0],
