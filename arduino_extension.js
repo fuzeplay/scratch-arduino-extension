@@ -287,6 +287,7 @@
   }
 
   function digitalRead(pin) {
+    console.log("About to digital Read pin");
     if (!hasCapability(pin, INPUT)) {
       console.log('ERROR: valid input pins are ' + pinModes[INPUT].join(', '));
       return;
@@ -377,6 +378,10 @@
     return digitalRead(pin);
   };
 
+  ext.digitalPullupRead = function(pin) {
+    return digitalPullupRead(pin);
+  }
+
   ext.whenAnalogRead = function(pin, op, val) {
     if (pin >= 0 && pin < pinModes[ANALOG].length) {
       if (op == '>')
@@ -406,7 +411,7 @@
       else if (val == menus[lang]['outputs'][1])
         return digitalPullupRead(pin) === false;
     } else {
-      console.log("Can't digital puuup read since pin doesn't have capability");
+      console.log("Can't digital pullup read since pin doesn't have capability");
     }
   };
 
