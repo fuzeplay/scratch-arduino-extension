@@ -296,10 +296,12 @@
   }
 
   function digitalPullupRead(pin) {
+    console.log("About to read digital pullup pin");
   if (!hasCapability(pin, INPUT)) {
     console.log('ERROR: valid input pins are ' + pinModes[INPUT].join(', '));
     return;
   }
+  console.log("Set pin to pullup");
   pinMode(pin, PULLUP);
   return (digitalInputData[pin >> 3] >> (pin & 0x07)) & 0x01;
 }
@@ -403,6 +405,8 @@
         return digitalPullupRead(pin);
       else if (val == menus[lang]['outputs'][1])
         return digitalPullupRead(pin) === false;
+    } else {
+      console.log("Can't digital puuup read since pin doesn't have capability");
     }
   };
 
