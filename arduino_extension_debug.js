@@ -518,7 +518,7 @@
       var string = uintToString(inputData);
       console.log("Input Data:");
       console.log(inputData);
-      console.log(string);
+      // console.log(string);
       processInput(inputData);
     });
 
