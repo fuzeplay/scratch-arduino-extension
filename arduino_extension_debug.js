@@ -43,7 +43,7 @@
 
   var LOW = 0,
     HIGH = 1;
-  
+
   var MAX_DATA_BYTES = 4096;
   var MAX_PINS = 128;
 
@@ -64,7 +64,7 @@
 
   var majorVersion = 0,
     minorVersion = 0;
-  
+
   var connected = false;
   var notifyConnection = false;
   var device = null;
@@ -147,7 +147,7 @@
     var output = new Uint8Array([START_SYSEX, QUERY_FIRMWARE, END_SYSEX]);
     device.send(output.buffer);
   }
- 
+
   function queryCapabilities() {
     console.log('Querying ' + device.id + ' capabilities');
     var msg = new Uint8Array([
@@ -221,9 +221,9 @@
     }
   }
 
-  function processInput(inputData) { 
+  function processInput(inputData) {
     for (var i=0; i < inputData.length; i++) {
-      
+
       if (parsingSysex) {
         if (inputData[i] == END_SYSEX) {
           parsingSysex = false;
@@ -439,7 +439,7 @@
       hw.val = 0;
     }
   };
-  
+
   ext.readInput = function(name) {
     var hw = hwList.search(name);
     if (!hw) return;
@@ -478,7 +478,7 @@
     var output = (((bMax - bMin) * (val - aMin)) / (aMax - aMin)) + bMin;
     return Math.round(output);
   };
- 
+
   ext._getStatus = function() {
     if (!connected)
       return { status:1, msg:'Disconnected' };
@@ -500,6 +500,13 @@
 
   var poller = null;
   var watchdog = null;
+
+  function uintToString(uintArray) {
+    var encodedString = String.fromCharCode.apply(null, uintArray),
+        decodedString = decodeURIComponent(escape(atob(encodedString)));
+    return decodedString;
+  }
+
   function tryNextDevice() {
     device = potentialDevices.shift();
     if (!device) return;
@@ -508,8 +515,9 @@
     console.log('Attempting connection with ' + device.id);
     device.set_receive_handler(function(data) {
       var inputData = new Uint8Array(data);
+      var string = uintToString(inputData);
       console.log("Input Data:");
-      console.log(inputData);
+      console.log(string);
       processInput(inputData);
     });
 
@@ -528,7 +536,7 @@
   }
 
   ext._shutdown = function() {
-    // TODO: Bring all pins down 
+    // TODO: Bring all pins down
     if (device) device.close();
     if (poller) clearInterval(poller);
     device = null;
@@ -760,7 +768,7 @@
       outputs: ['on', 'off'],
       ops: ['>', '=', '<'],
       servos: ['servo A', 'servo B', 'servo C', 'servo D']
-    },  
+    },
     de: {
       buttons: ['Taste A', 'Taste B', 'Taste C', 'Taste D'],
       btnStates: ['gedrückt', 'losgelassen'],
