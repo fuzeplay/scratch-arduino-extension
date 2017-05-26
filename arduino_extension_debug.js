@@ -517,6 +517,7 @@
       var inputData = new Uint8Array(data);
       var string = uintToString(inputData);
       console.log("Input Data:");
+      console.log(inputData);
       console.log(string);
       processInput(inputData);
     });
