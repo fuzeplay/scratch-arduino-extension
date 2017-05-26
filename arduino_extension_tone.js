@@ -347,6 +347,7 @@
   }
  
   function tone(pin, freq, duration) {
+    console.log('Playing tone!');
     if (!hasCapability(pin, TONE)) {
       console.log('ERROR: valid tone pins are ' + pinModes[TONE].join(', '));
       return;
@@ -361,6 +362,7 @@
         duration & 0x7f,
         duration >> 7,
         END_SYSEX]);
+    console.log('About to send note array');
     device.send(msg.buffer);
   }
 
