@@ -357,8 +357,8 @@
     var msg = new Uint8Array([
         START_SYSEX,
         TONE_DATA,
-        pin,
         TONE_TONE,
+        pin,
         freq & 0x7F,
         freq >> 7,
         duration & 0x7f,
