@@ -53,8 +53,8 @@
 
   //Codes for colors
   var COLOR_RED = 0x00;
-  var COLOR_GREEN = 0x01;
-  var COLOR_BLUE = 0x02;
+  var COLOR_BLUE = 0x01;
+  var COLOR_GREEN = 0x02;
 
   //Buzzer
   var TONE_TONE = 0,
@@ -471,13 +471,10 @@
   };
 
   setLEDStripColor = function(pin, color) {
-    // if (!hasCapability(pin, TONE)) {
-    //   console.log('ERROR: valid tone pins are ' + pinModes[TONE].join(', '));
-    //   return;
-    // }
 
     //Convert color String to color code
     var colorCode;
+
     switch (color) {
       case 'red':
         colorCode = COLOR_RED;
@@ -488,16 +485,19 @@
       case 'blue':
         colorCode = COLOR_BLUE;
       break;
+      case 0x7F:
+        //Clear it
+        colorCode = CLEAR_LED;
       default:
-          //Make it red
-          colorCode = COLOR_RED;
+          //Clear it
+          colorCode = CLEAR_LED;
     }
 
     var msg = new Uint8Array([
         START_SYSEX,
         LED_STRIP,
-        pin, //Can also be ALL_LEDS, -1
-        colorCode, //Can also be CLEAR_LED, -1 (Make sure this doesn't exceed 0x7F)
+        pin, //Can also be ALL_LEDS
+        colorCode, //Can also be CLEAR_LED
         END_SYSEX]);
     device.send(msg.buffer);
   }
