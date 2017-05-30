@@ -29,6 +29,8 @@
     CAPABILITY_QUERY = 0x6B,
     CAPABILITY_RESPONSE = 0x6C;
 
+  var TONE_DATA = 0x5F;
+
   var INPUT = 0x00,
     OUTPUT = 0x01,
     ANALOG = 0x02,
@@ -42,10 +44,10 @@
 
   var LOW = 0,
     HIGH = 1;
- 
+
   var TONE_TONE = 0,
     TONE_NO_TONE = 1;
- 
+
   var MAX_DATA_BYTES = 4096;
   var MAX_PINS = 128;
 
@@ -66,7 +68,7 @@
 
   var majorVersion = 0,
     minorVersion = 0;
-  
+
   var connected = false;
   var notifyConnection = false;
   var device = null;
@@ -149,7 +151,7 @@
     var output = new Uint8Array([START_SYSEX, QUERY_FIRMWARE, END_SYSEX]);
     device.send(output.buffer);
   }
- 
+
   function queryCapabilities() {
     console.log('Querying ' + device.id + ' capabilities');
     var msg = new Uint8Array([
@@ -225,9 +227,9 @@
     }
   }
 
-  function processInput(inputData) { 
+  function processInput(inputData) {
     for (var i=0; i < inputData.length; i++) {
-      
+
       if (parsingSysex) {
         if (inputData[i] == END_SYSEX) {
           parsingSysex = false;
@@ -345,16 +347,16 @@
         deg >> 0x07]);
     device.send(msg.buffer);
   }
- 
+
   function tone(pin, freq, duration) {
-    console.log('Playing tone!');
+    console.log('Playing tone');
     if (!hasCapability(pin, TONE)) {
       console.log('ERROR: valid tone pins are ' + pinModes[TONE].join(', '));
       return;
     }
     var msg = new Uint8Array([
         START_SYSEX,
-        0x5F,
+        TONE_DATA,
         pin,
         TONE_TONE,
         freq & 0x7F,
@@ -362,7 +364,6 @@
         duration & 0x7f,
         duration >> 7,
         END_SYSEX]);
-    console.log('About to send note array');
     device.send(msg.buffer);
   }
 
@@ -373,7 +374,7 @@
     }
     var msg = new Uint8Array([
         START_SYSEX,
-        0x5F,
+       	TONE_DATA,
         pin,
         TONE_NO_TONE,
         END_SYSEX]);
@@ -448,7 +449,7 @@
     rotateServo(hw.pin, deg);
     hw.val = deg;
   };
- 
+
   ext.tone = function(pin, freq, duration) {
     tone(pin, freq, duration);
   };
@@ -485,7 +486,7 @@
       hw.val = 0;
     }
   };
-  
+
   ext.readInput = function(name) {
     var hw = hwList.search(name);
     if (!hw) return;
@@ -524,7 +525,7 @@
     var output = (((bMax - bMin) * (val - aMin)) / (aMax - aMin)) + bMin;
     return Math.round(output);
   };
- 
+
   ext._getStatus = function() {
     if (!connected)
       return { status:1, msg:'Disconnected' };
@@ -572,7 +573,7 @@
   }
 
   ext._shutdown = function() {
-    // TODO: Bring all pins down 
+    // TODO: Bring all pins down
     if (device) device.close();
     if (poller) clearInterval(poller);
     device = null;
@@ -697,7 +698,7 @@
       outputs: ['on', 'off'],
       ops: ['>', '=', '<'],
       servos: ['servo A', 'servo B', 'servo C', 'servo D']
-    },  
+    },
     de: {
       buttons: ['Taste A', 'Taste B', 'Taste C', 'Taste D'],
       btnStates: ['gedrückt', 'losgelassen'],
