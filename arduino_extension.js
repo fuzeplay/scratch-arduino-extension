@@ -29,7 +29,9 @@
     CAPABILITY_QUERY = 0x6B,
     CAPABILITY_RESPONSE = 0x6C;
 
-  var TONE_DATA = 0x5F;
+  // Fuze SysEx Functionality
+  var TONE_DATA = 0x5F,
+      LED_STRIP = 0x6F;
 
   var INPUT = 0x00,
     OUTPUT = 0x01,
@@ -45,6 +47,16 @@
   var LOW = 0,
     HIGH = 1;
 
+  //LED Strip
+  var ALL_LEDS = -1; //This means you change all LEDs
+  var CLEAR_LED = -1; //This means clear the selected LEDs
+
+  //Codes for colors
+  var COLOR_RED = 0x00;
+  var COLOR_GREEN = 0x01;
+  var COLOR_BLUE = 0x02;
+
+  //Buzzer
   var TONE_TONE = 0,
     TONE_NO_TONE = 1;
 
@@ -458,6 +470,62 @@
     noTone(pin);
   };
 
+  setLEDStripColor = function(pin, color) {
+    // if (!hasCapability(pin, TONE)) {
+    //   console.log('ERROR: valid tone pins are ' + pinModes[TONE].join(', '));
+    //   return;
+    // }
+
+    //Convert color String to color code
+    var colorCode;
+    switch (color) {
+      case 'red':
+        colorCode = COLOR_RED;
+      break;
+      case 'green':
+        colorCode = COLOR_GREEN;
+      break;
+      case 'blue':
+        colorCode = COLOR_BLUE;
+      break;
+      default:
+          //Make it red
+          colorCode = COLOR_RED;
+    }
+
+    var msg = new Uint8Array([
+        START_SYSEX,
+        LED_STRIP,
+        pin, //Can also be ALL_LEDS, -1
+        colorCode, //Can also be CLEAR_LED, -1 (Make sure this doesn't exceed 0x7F)
+        END_SYSEX]);
+    device.send(msg.buffer);
+  }
+
+  //LED Strip methods
+
+  ext.setStripLEDColor = function(index, color) {
+    console.log('Setting led '+index+' color to '+color);
+    setLEDStripColor(index, color);
+  };
+
+  ext.setAllStripLEDsColor = function(color) {
+    console.log('Setting all led colors to '+color);
+    setLEDStripColor(ALL_LEDS, color);
+  };
+
+  ext.clearStripLED = function(index) {
+    console.log('Clearing led '+index);
+    setLEDStripColor(index, CLEAR_LED);
+  };
+
+  ext.clearAllStripLEDs = function() {
+    console.log('Clearing all LEDS');
+    setLEDStripColor(ALL_LEDS, CLEAR_LED);
+  };
+
+  //Old LED methods
+
   ext.setLED = function(led, val) {
     var hw = hwList.search(led);
     if (!hw) return;
@@ -620,7 +688,11 @@
       [' ', 'tone on pin %n, freq %n, duration %n', 'tone', 3, 440, 1000],
       [' ', 'stop tone on pin %n', 'noTone', 3],
       ['-'],
-      ['r', 'map %n from %n %n to %n %n', 'mapValues', 50, 0, 100, -240, 240]
+      ['r', 'map %n from %n %n to %n %n', 'mapValues', 50, 0, 100, -240, 240],
+      [' ', 'set all leds to %m.ledColors', 'setAllStripLEDsColor', 'red'],
+      [' ', 'set led %n to %m.ledColors', 'setStripLEDColor', 0, 'red'],
+      [' ', 'clear all leds', 'clearAllStripLEDs'],
+      [' ', 'clear led %n', 'clearStripLED', 0]
     ],
     de: [
       ['h', 'Wenn Arduino verbunden ist', 'whenConnected'],
@@ -697,7 +769,8 @@
       leds: ['led A', 'led B', 'led C', 'led D'],
       outputs: ['on', 'off'],
       ops: ['>', '=', '<'],
-      servos: ['servo A', 'servo B', 'servo C', 'servo D']
+      servos: ['servo A', 'servo B', 'servo C', 'servo D'],
+      ledColors: ['red', 'green', 'blue']
     },
     de: {
       buttons: ['Taste A', 'Taste B', 'Taste C', 'Taste D'],
