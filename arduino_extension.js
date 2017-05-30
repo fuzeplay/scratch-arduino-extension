@@ -31,7 +31,7 @@
 
   // Fuze SysEx Functionality
   var TONE_DATA = 0x5F,
-      LED_STRIP = 0x6F;
+      LED_STRIP = 0x7C;
 
   var INPUT = 0x00,
     OUTPUT = 0x01,
@@ -48,8 +48,8 @@
     HIGH = 1;
 
   //LED Strip
-  var ALL_LEDS = -1; //This means you change all LEDs
-  var CLEAR_LED = -1; //This means clear the selected LEDs
+  var ALL_LEDS = 0x7F; //This means you change all LEDs
+  var CLEAR_LED = 0x7F; //This means clear the selected LEDs
 
   //Codes for colors
   var COLOR_RED = 0x00;
