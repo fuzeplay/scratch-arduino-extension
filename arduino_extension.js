@@ -47,6 +47,17 @@
   var LOW = 0,
     HIGH = 1;
 
+  //Zubi Flyer pins
+  //These aren't the same numbers are on the Arduino code, but it needs to be these to work
+  var TRIANGLE_BUTTON_PIN = 10,
+    CIRCLE_BUTTON_PIN = 4,
+    SQUARE_BUTTON_PIN = 8,
+    BUTTON_ONE_PIN = 6,
+    BUTTON_TWO_PIN = 5,
+    BUTTON_THREE_PIN = 20,
+    BUZZER_PIN =  3, //Digital 3 (Untested)
+    LIGHT_SENSOR_PIN = 3; //Analog 3
+
   //LED Strip
   var ALL_LEDS = 0x7F; //This means you change all LEDs
   var CLEAR_LED = 0x7F; //This means clear the selected LEDs
@@ -97,30 +108,30 @@
   var pingCount = 0;
   var pinger = null;
 
-  var hwList = new HWList();
-
-  function HWList() {
-    this.devices = [];
-
-    this.add = function(dev, pin) {
-      var device = this.search(dev);
-      if (!device) {
-        device = {name: dev, pin: pin, val: 0};
-        this.devices.push(device);
-      } else {
-        device.pin = pin;
-        device.val = 0;
-      }
-    };
-
-    this.search = function(dev) {
-      for (var i=0; i<this.devices.length; i++) {
-        if (this.devices[i].name === dev)
-          return this.devices[i];
-      }
-      return null;
-    };
-  }
+  // var hwList = new HWList();
+  //
+  // function HWList() {
+  //   this.devices = [];
+  //
+  //   this.add = function(dev, pin) {
+  //     var device = this.search(dev);
+  //     if (!device) {
+  //       device = {name: dev, pin: pin, val: 0};
+  //       this.devices.push(device);
+  //     } else {
+  //       device.pin = pin;
+  //       device.val = 0;
+  //     }
+  //   };
+  //
+  //   this.search = function(dev) {
+  //     for (var i=0; i<this.devices.length; i++) {
+  //       if (this.devices[i].name === dev)
+  //         return this.devices[i];
+  //     }
+  //     return null;
+  //   };
+  // }
 
   function init() {
 
@@ -314,7 +325,8 @@
       return;
     }
     pinMode(pin, INPUT);
-    return (digitalInputData[pin >> 3] >> (pin & 0x07)) & 0x01;
+    //Values are flipped, so need to return the inverse
+    return !((digitalInputData[pin >> 3] >> (pin & 0x07)) & 0x01);
   }
 
   function analogWrite(pin, val) {
@@ -351,129 +363,6 @@
     device.send(msg.buffer);
   }
 
-  function rotateServo(pin, deg) {
-    if (!hasCapability(pin, SERVO)) {
-      console.log('ERROR: valid servo pins are ' + pinModes[SERVO].join(', '));
-      return;
-    }
-    pinMode(pin, SERVO);
-    var msg = new Uint8Array([
-        ANALOG_MESSAGE | (pin & 0x0F),
-        deg & 0x7F,
-        deg >> 0x07]);
-    device.send(msg.buffer);
-  }
-
-  function tone(pin, freq, duration) {
-    console.log('Playing tone');
-    if (!hasCapability(pin, TONE)) {
-      console.log('ERROR: valid tone pins are ' + pinModes[TONE].join(', '));
-      return;
-    }
-    var msg = new Uint8Array([
-        START_SYSEX,
-        TONE_DATA,
-        TONE_TONE,
-        pin,
-        freq & 0x7F,
-        freq >> 7,
-        duration & 0x7f,
-        duration >> 7,
-        END_SYSEX]);
-    device.send(msg.buffer);
-  }
-
-  function noTone(pin) {
-    if (!hasCapability(pin, TONE)) {
-      console.log('ERROR: valid tone pins are ' + pinModes[TONE].join(', '));
-      return;
-    }
-    var msg = new Uint8Array([
-        START_SYSEX,
-       	TONE_DATA,
-        pin,
-        TONE_NO_TONE,
-        END_SYSEX]);
-    device.send(msg.buffer);
-  }
-
-  ext.whenConnected = function() {
-    if (notifyConnection) return true;
-    return false;
-  };
-
-  ext.analogWrite = function(pin, val) {
-    analogWrite(pin, val);
-  };
-
-  ext.digitalWrite = function(pin, val) {
-    if (val == 'on')
-      digitalWrite(pin, HIGH);
-    else if (val == 'off')
-      digitalWrite(pin, LOW);
-  };
-
-  ext.analogRead = function(pin) {
-    return analogRead(pin);
-  };
-
-  ext.digitalRead = function(pin) {
-    return digitalRead(pin);
-  };
-
-  ext.whenAnalogRead = function(pin, op, val) {
-    if (pin >= 0 && pin < pinModes[ANALOG].length) {
-      if (op == '>')
-        return analogRead(pin) > val;
-      else if (op == '<')
-        return analogRead(pin) < val;
-      else if (op == '=')
-        return analogRead(pin) == val;
-      else
-        return false;
-    }
-  };
-
-  ext.whenDigitalRead = function(pin, val) {
-    if (hasCapability(pin, INPUT)) {
-      if (val == 'on')
-        return digitalRead(pin);
-      else if (val == 'off')
-        return digitalRead(pin) === false;
-    }
-  };
-
-  ext.connectHW = function(hw, pin) {
-    hwList.add(hw, pin);
-  };
-
-  ext.rotateServo = function(servo, deg) {
-    var hw = hwList.search(servo);
-    if (!hw) return;
-    if (deg < 0) deg = 0;
-    else if (deg > 180) deg = 180;
-    rotateServo(hw.pin, deg);
-    hw.val = deg;
-  };
-
-  ext.changeServo = function(servo, change) {
-    var hw = hwList.search(servo);
-    if (!hw) return;
-    var deg = hw.val + change;
-    if (deg < 0) deg = 0;
-    else if (deg > 180) deg = 180;
-    rotateServo(hw.pin, deg);
-    hw.val = deg;
-  };
-
-  ext.tone = function(pin, freq, duration) {
-    tone(pin, freq, duration);
-  };
-
-  ext.noTone = function(pin) {
-    noTone(pin);
-  };
-
   setLEDStripColor = function(pin, color) {
 
     //Convert color String to color code
@@ -504,6 +393,7 @@
       case 0x7F:
         //Clear it
         colorCode = CLEAR_LED;
+      break;
       default:
           //Clear it
           colorCode = CLEAR_LED;
@@ -519,6 +409,70 @@
         END_SYSEX]);
     device.send(msg.buffer);
   }
+
+
+  function getButtonPin(btn) {
+    switch (btn) {
+      case 'triangle button':
+        return TRIANGLE_BUTTON_PIN;
+      break;
+      case 'square button':
+        return SQUARE_BUTTON_PIN;
+      break;
+      case 'circle button':
+        return CIRCLE_BUTTON_PIN;
+      break;
+      case 'button 1':
+        return BUTTON_ONE_PIN;
+      break;
+      case 'button 2':
+        return BUTTON_TWO_PIN;
+      break;
+      case 'button 3':
+        return BUTTON_THREE_PIN;
+      break;
+      default:
+          return null;
+    }
+  }
+
+  function tone(freq, duration) {
+    console.log('Playing tone');
+    var msg = new Uint8Array([
+        START_SYSEX,
+        TONE_DATA,
+        TONE_TONE,
+        BUZZER_PIN,
+        freq & 0x7F,
+        freq >> 7,
+        duration & 0x7f,
+        duration >> 7,
+        END_SYSEX]);
+    device.send(msg.buffer);
+  }
+
+  function noTone(pin) {
+    var msg = new Uint8Array([
+        START_SYSEX,
+       	TONE_DATA,
+        TONE_NO_TONE,
+        BUZZER_PIN,
+        END_SYSEX]);
+    device.send(msg.buffer);
+  }
+
+  ext.whenConnected = function() {
+    if (notifyConnection) return true;
+    return false;
+  };
+
+  ext.tone = function(pin, freq, duration) {
+    tone(pin, freq, duration);
+  };
+
+  ext.noTone = function(pin) {
+    noTone(pin);
+  };
 
   //LED Strip methods
 
@@ -542,74 +496,38 @@
     setLEDStripColor(ALL_LEDS, CLEAR_LED);
   };
 
-  //Old LED methods
-
-  ext.setLED = function(led, val) {
-    var hw = hwList.search(led);
-    if (!hw) return;
-    analogWrite(hw.pin, val);
-    hw.val = val;
-  };
-
-  ext.changeLED = function(led, val) {
-    var hw = hwList.search(led);
-    if (!hw) return;
-    var b = hw.val + val;
-    if (b < 0) b = 0;
-    else if (b > 100) b = 100;
-    analogWrite(hw.pin, b);
-    hw.val = b;
-  };
-
-  ext.digitalLED = function(led, val) {
-    var hw = hwList.search(led);
-    if (!hw) return;
-    if (val == 'on') {
-      digitalWrite(hw.pin, HIGH);
-      hw.val = 255;
-    } else if (val == 'off') {
-      digitalWrite(hw.pin, LOW);
-      hw.val = 0;
-    }
-  };
+  //Light sensor methods
 
   ext.readInput = function(name) {
-    var hw = hwList.search(name);
-    if (!hw) return;
-    return analogRead(hw.pin);
+    return analogRead(LIGHT_SENSOR_PIN);
   };
 
-  ext.whenButton = function(btn, state) {
-    var hw = hwList.search(btn);
-    if (!hw) return;
-    if (state === 'pressed')
-      return digitalRead(hw.pin);
-    else if (state === 'released')
-      return !digitalRead(hw.pin);
-  };
-
-  ext.isButtonPressed = function(btn) {
-    var hw = hwList.search(btn);
-    if (!hw) return;
-    return digitalRead(hw.pin);
-  };
-
-  ext.whenInput = function(name, op, val) {
-    var hw = hwList.search(name);
-    if (!hw) return;
+  ext.whenInput = function(op, val) {
     if (op == '>')
-      return analogRead(hw.pin) > val;
+      return analogRead(LIGHT_SENSOR_PIN) > val;
     else if (op == '<')
-      return analogRead(hw.pin) < val;
+      return analogRead(LIGHT_SENSOR_PIN) < val;
     else if (op == '=')
-      return analogRead(hw.pin) == val;
+      return analogRead(LIGHT_SENSOR_PIN) == val;
     else
       return false;
   };
 
-  ext.mapValues = function(val, aMin, aMax, bMin, bMax) {
-    var output = (((bMax - bMin) * (val - aMin)) / (aMax - aMin)) + bMin;
-    return Math.round(output);
+  //Button methods
+
+  ext.whenButton = function(btn, state) {
+    var pin = getButtonPin(btn);
+    if (!pin) return;
+    if (state === 'pressed')
+      return digitalRead(pin);
+    else if (state === 'released')
+      return !digitalRead(pin);
+  };
+
+  ext.isButtonPressed = function(btn) {
+    var pin = getButtonPin(btn);
+    if (!pin) return;
+    return digitalRead(pin);
   };
 
   ext._getStatus = function() {
@@ -678,144 +596,37 @@
   var blocks = {
     en: [
       ['h', 'when device is connected', 'whenConnected'],
-      [' ', 'connect %m.hwOut to pin %n', 'connectHW', 'led A', 3],
-      [' ', 'connect %m.hwIn to analog %n', 'connectHW', 'rotation knob', 0],
       ['-'],
-      [' ', 'set %m.leds %m.outputs', 'digitalLED', 'led A', 'on'],
-      [' ', 'set %m.leds brightness to %n%', 'setLED', 'led A', 100],
-      [' ', 'change %m.leds brightness by %n%', 'changeLED', 'led A', 20],
+      ['h', 'when %m.buttons is %m.btnStates', 'whenButton', 'triangle button', 'pressed'],
+      ['b', '%m.buttons pressed?', 'isButtonPressed', 'triangle button'],
       ['-'],
-      [' ', 'rotate %m.servos to %n degrees', 'rotateServo', 'servo A', 180],
-      [' ', 'rotate %m.servos by %n degrees', 'changeServo', 'servo A', 20],
+      ['h', 'when light sensor %m.ops %n%', 'whenInput', '>', 50],
+      ['r', 'read light sensor', 'readInput'],
       ['-'],
-      ['h', 'when %m.buttons is %m.btnStates', 'whenButton', 'button A', 'pressed'],
-      ['b', '%m.buttons pressed?', 'isButtonPressed', 'button A'],
+      [' ', 'tone freq %n, duration %n', 'tone', 440, 1000],
+      [' ', 'stop tone', 'noTone'],
       ['-'],
-      ['h', 'when %m.hwIn %m.ops %n%', 'whenInput', 'rotation knob', '>', 50],
-      ['r', 'read %m.hwIn', 'readInput', 'rotation knob'],
-      ['-'],
-      [' ', 'set pin %n %m.outputs', 'digitalWrite', 1, 'on'],
-      [' ', 'set pin %n to %n%', 'analogWrite', 3, 100],
-      ['-'],
-      ['h', 'when pin %n is %m.outputs', 'whenDigitalRead', 1, 'on'],
-      ['b', 'pin %n on?', 'digitalRead', 1],
-      ['-'],
-      ['h', 'when analog %n %m.ops %n%', 'whenAnalogRead', 1, '>', 50],
-      ['r', 'read analog %n', 'analogRead', 0],
-      ['-'],
-      [' ', 'tone on pin %n, freq %n, duration %n', 'tone', 3, 440, 1000],
-      [' ', 'stop tone on pin %n', 'noTone', 3],
-      ['-'],
-      ['r', 'map %n from %n %n to %n %n', 'mapValues', 50, 0, 100, -240, 240],
       [' ', 'set all leds to %m.ledColors', 'setAllStripLEDsColor', 'red'],
       [' ', 'set led %n to %m.ledColors', 'setStripLEDColor', 0, 'red'],
       [' ', 'clear all leds', 'clearAllStripLEDs'],
       [' ', 'clear led %n', 'clearStripLED', 0]
-    ],
-    de: [
-      ['h', 'Wenn Arduino verbunden ist', 'whenConnected'],
-      [' ', 'Verbinde %m.hwOut mit Pin %n', 'connectHW', 'LED A', 3],
-      [' ', 'Verbinde %m.hwIn mit Analog %n', 'connectHW', 'Drehknopf', 0],
-      ['-'],
-      [' ', 'Schalte %m.leds %m.outputs', 'digitalLED', 'LED A', 'Ein'],
-      [' ', 'Setze %m.leds Helligkeit auf %n%', 'setLED', 'LED A', 100],
-      [' ', 'Ändere %m.leds Helligkeit um %n%', 'changeLED', 'LED A', 20],
-      ['-'],
-      [' ', 'Drehe %m.servos auf %n Grad', 'rotateServo', 'Servo A', 180],
-      [' ', 'Drehe %m.servos um %n Grad', 'changeServo', 'Servo A', 20],
-      ['-'],
-      ['h', 'Wenn %m.buttons ist %m.btnStates', 'whenButton', 'Taste A', 'gedrückt'],
-      ['b', '%m.buttons gedrückt?', 'isButtonPressed', 'Taste A'],
-      ['-'],
-      ['h', 'Wenn %m.hwIn %m.ops %n%', 'whenInput', 'Drehknopf', '>', 50],
-      ['r', 'Wert von %m.hwIn', 'readInput', 'Drehknopf'],
-      ['-'],
-      [' ', 'Schalte Pin %n %m.outputs', 'digitalWrite', 1, 'Ein'],
-      [' ', 'Setze Pin %n auf %n%', 'analogWrite', 3, 100],
-      ['-'],
-      ['h', 'Wenn Pin %n ist %m.outputs', 'whenDigitalRead', 1, 'Ein'],
-      ['b', 'Pin %n ein?', 'digitalRead', 1],
-      ['-'],
-      ['h', 'Wenn Analog %n %m.ops %n%', 'whenAnalogRead', 1, '>', 50],
-      ['r', 'Wert von Analog %n', 'analogRead', 0],
-      ['-'],
-      [' ', 'tone on pin %n, freq %n, duration %n', 'tone', 3, 440, 1000],
-      [' ', 'stop tone on pin %n', 'noTone', 3],
-      ['-'],
-      ['r', 'Setze %n von %n %n auf %n %n', 'mapValues', 50, 0, 100, -240, 240]
-    ],
-    nl: [
-      ['h', 'als het apparaat verbonden is', 'whenConnected'],
-      [' ', 'verbindt %m.hwOut met pin %n', 'connectHW', 'led A', 3],
-      [' ', 'verbindt %m.hwIn met analoog %n', 'connectHW', 'draaiknop', 0],
-      ['-'],
-      [' ', 'schakel %m.leds %m.outputs', 'digitalLED', 'led A', 'on'],
-      [' ', 'schakel %m.leds helderheid tot %n%', 'setLED', 'led A', 100],
-      [' ', 'verander %m.leds helderheid met %n%', 'changeLED', 'led A', 20],
-      ['-'],
-      [' ', 'draai %m.servos tot %n graden', 'rotateServo', 'servo A', 180],
-      [' ', 'draai %m.servos met %n graden', 'changeServo', 'servo A', 20],
-      ['-'],
-      ['h', 'wanneer %m.buttons is %m.btnStates', 'whenButton', 'knop A', 'in gedrukt'],
-      ['b', '%m.knoppen in gedrukt?', 'isButtonPressed', 'knoppen A'],
-      ['-'],
-      ['h', 'wanneer%m.hwIn %m.ops %n%', 'whenInput', 'draaiknop', '>', 50],
-      ['r', 'read %m.hwIn', 'readInput', 'draaiknop'],
-      ['-'],
-      [' ', 'schakel pin %n %m.outputs', 'digitalWrite', 1, 'on'],
-      [' ', 'schakel pin %n tot %n%', 'analogWrite', 3, 100],
-      ['-'],
-      ['h', 'wanneer pin %n is %m.outputs', 'whenDigitalRead', 1, 'on'],
-      ['b', 'pin %n aan?', 'digitalRead', 1],
-      ['-'],
-      ['h', 'wanneer analoge %n %m.ops %n%', 'whenAnalogRead', 1, '>', 50],
-      ['r', 'lees analoge %n', 'analogRead', 0],
-      ['-'],
-      [' ', 'tone on pin %n, freq %n, duration %n', 'tone', 3, 440, 1000],
-      [' ', 'stop tone on pin %n', 'noTone', 3],
-      ['-'],
-      ['r', 'zet %n van %n %n tot %n %n', 'mapValues', 50, 0, 100, -240, 240]
     ]
   };
 
   var menus = {
     en: {
-      buttons: ['button A', 'button B', 'button C', 'button D'],
+      buttons: ['triangle button', 'square button', 'circle button', 'button 1', 'button 2', 'button 3'],
       btnStates: ['pressed', 'released'],
-      hwIn: ['rotation knob', 'light sensor', 'temperature sensor'],
-      hwOut: ['led A', 'led B', 'led C', 'led D', 'button A', 'button B', 'button C', 'button D', 'servo A', 'servo B', 'servo C', 'servo D'],
-      leds: ['led A', 'led B', 'led C', 'led D'],
       outputs: ['on', 'off'],
       ops: ['>', '=', '<'],
-      servos: ['servo A', 'servo B', 'servo C', 'servo D'],
       ledColors: ['red', 'green', 'blue', 'purple', 'turquoise', 'white', 'pink']
-    },
-    de: {
-      buttons: ['Taste A', 'Taste B', 'Taste C', 'Taste D'],
-      btnStates: ['gedrückt', 'losgelassen'],
-      hwIn: ['Drehknopf', 'Lichtsensor', 'Temperatursensor'],
-      hwOut: ['LED A', 'LED B', 'LED C', 'LED D', 'Taste A', 'Taste B', 'Taste C', 'Taste D', 'Servo A', 'Servo B', 'Servo C', 'Servo D'],
-      leds: ['LED A', 'LED B', 'LED C', 'LED D'],
-      outputs: ['Ein', 'Aus'],
-      ops: ['>', '=', '<'],
-      servos: ['Servo A', 'Servo B', 'Servo C', 'Servo D']
-    },
-    nl: {
-      buttons: ['knop A', 'knop B', 'knop C', 'knop D'],
-      btnStates: ['ingedrukt', 'losgelaten'],
-      hwIn: ['draaiknop', 'licht sensor', 'temperatuur sensor'],
-      hwOut: ['led A', 'led B', 'led C', 'led D', 'knop A', 'knop B', 'knop C', 'knop D', 'servo A', 'servo B', 'servo C', 'servo D'],
-      leds: ['led A', 'led B', 'led C', 'led D'],
-      outputs: ['aan', 'uit'],
-      ops: ['>', '=', '<'],
-      servos: ['servo A', 'servo B', 'servo C', 'servo D']
     }
   };
 
   var descriptor = {
     blocks: blocks[lang],
     menus: menus[lang],
-    url: 'http://khanning.github.io/scratch-arduino-extension'
+    url: 'https://github.com/fuzeplay/scratch-arduino-extension'
   };
 
   ScratchExtensions.register('Arduino', descriptor, ext, {type:'serial'});
