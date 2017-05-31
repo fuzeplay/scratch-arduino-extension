@@ -629,6 +629,6 @@
     url: 'https://github.com/fuzeplay/scratch-arduino-extension'
   };
 
-  ScratchExtensions.register('Arduino', descriptor, ext, {type:'serial'});
+  ScratchExtensions.register('Zubi Flyer', descriptor, ext, {type:'serial'});
 
 })({});
