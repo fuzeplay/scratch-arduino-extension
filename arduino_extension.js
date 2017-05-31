@@ -53,8 +53,15 @@
 
   //Codes for colors
   var COLOR_RED = 0x00;
-  var COLOR_BLUE = 0x01;
-  var COLOR_GREEN = 0x02;
+  var COLOR_GREEN = 0x01;
+  var COLOR_BLUE = 0x02;
+  var COLOR_PURPLE = 0x03;
+  var COLOR_TURQUOISE = 0x04;
+  var COLOR_ORANGE = 0x05;
+  var COLOR_WHITE = 0x06;
+  var COLOR_LIME = 0x07;
+  var COLOR_PINK = 0x08;
+  var COLOR_YELLOW = 0x09;
 
   //Buzzer
   var TONE_TONE = 0,
@@ -485,6 +492,27 @@
       case 'blue':
         colorCode = COLOR_BLUE;
       break;
+      case 'purple':
+        colorCode = COLOR_PURPLE;
+      break;
+      case 'turquoise':
+        colorCode = COLOR_TURQUOISE;
+      break;
+      case 'orange':
+        colorCode = COLOR_ORANGE;
+      break;
+      case 'white':
+        colorCode = COLOR_WHITE;
+      break;
+      case 'lime':
+        colorCode = COLOR_LIME;
+      break;
+      case 'pink':
+        colorCode = COLOR_PINK;
+      break;
+      case 'yellow':
+        colorCode = COLOR_YELLOW;
+      break;
       case 0x7F:
         //Clear it
         colorCode = CLEAR_LED;
@@ -770,7 +798,7 @@
       outputs: ['on', 'off'],
       ops: ['>', '=', '<'],
       servos: ['servo A', 'servo B', 'servo C', 'servo D'],
-      ledColors: ['red', 'green', 'blue']
+      ledColors: ['red', 'green', 'blue', 'purple', 'turquoise', 'orange', 'white', 'lime', 'pink', 'yellow']
     },
     de: {
       buttons: ['Taste A', 'Taste B', 'Taste C', 'Taste D'],
