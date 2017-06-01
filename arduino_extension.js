@@ -49,14 +49,14 @@
 
   //Zubi Flyer pins
   //These aren't the same numbers are on the Arduino code, but it needs to be these to work
-  var TRIANGLE_BUTTON_PIN = 10,
-    CIRCLE_BUTTON_PIN = 4,
-    SQUARE_BUTTON_PIN = 8,
-    BUTTON_ONE_PIN = 6,
-    BUTTON_TWO_PIN = 5,
-    BUTTON_THREE_PIN = 20,
-    BUZZER_PIN =  3, //Digital 3 (Untested)
-    LIGHT_SENSOR_PIN = 3; //Analog 3
+  var TRIANGLE_BUTTON_PIN = 10, //Pin 10 on Arduino
+    CIRCLE_BUTTON_PIN = 2, //Pin 2 on Arduino
+    SQUARE_BUTTON_PIN = 8, //Pin 8 on Arduino
+    BUTTON_ONE_PIN = 7, //Pin 7 on Arduino
+    BUTTON_TWO_PIN = 5, //Pin 5 on Arduino
+    BUTTON_THREE_PIN = 9, //Pin 9 on Arduino
+    BUZZER_PIN =  3, //Digital 3, doesn't work since this is also system clock pin
+    LIGHT_SENSOR_PIN = 3; //Analog Pin 3 on Arduino
 
   //LED Strip
   var ALL_LEDS = 0x7F; //This means you change all LEDs
